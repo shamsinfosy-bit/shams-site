@@ -1,0 +1,1 @@
+import{u as n,j as t,t as e}from"./index-QW4jT6mH.js";import"./vendor-DYAJ42dg.js";import"./ui-DHaIpKp9.js";import"./firebase-DuAMr17d.js";function p(){const a=n(s=>s.language),r=e[a];return t.jsxs("div",{className:"watch-page",dir:a==="ar"?"rtl":"ltr",children:[t.jsx("h1",{children:r.watch}),t.jsx("p",{children:r.startWatching})]})}export{p as default};

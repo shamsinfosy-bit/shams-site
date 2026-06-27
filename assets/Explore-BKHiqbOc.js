@@ -1,0 +1,1 @@
+import{u as a,j as r,t as o}from"./index-QW4jT6mH.js";import"./vendor-DYAJ42dg.js";import"./ui-DHaIpKp9.js";import"./firebase-DuAMr17d.js";function x(){const e=a(s=>s.language),t=o[e];return r.jsxs("div",{className:"explore-page",dir:e==="ar"?"rtl":"ltr",children:[r.jsx("h1",{children:t.explore}),r.jsx("p",{children:t.exploreLibrary})]})}export{x as default};
