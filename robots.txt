@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://shamsinfosy-bit.github.io/shams-site/sitemap.xml
