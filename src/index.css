@@ -1,0 +1,21 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-gray-950 text-gray-100 antialiased;
+  }
+}
+
+@layer components {
+  .shams-card {
+    @apply bg-gray-900 border border-gray-800 rounded-xl p-6 hover:border-shams-500/30 transition-all duration-300;
+  }
+  .shams-btn-primary {
+    @apply bg-shams-500 hover:bg-shams-600 text-black font-semibold px-4 py-2 rounded-lg transition-all duration-200;
+  }
+  .shams-btn-ghost {
+    @apply border border-gray-700 hover:border-shams-500/50 text-gray-300 hover:text-shams-400 font-semibold px-4 py-2 rounded-lg transition-all duration-200;
+  }
+}
