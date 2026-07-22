@@ -40,7 +40,28 @@ export const subscribeContent = (callback: (content: any[]) => void) => {
     callback(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
   });
 };
+// ========== موافقات المحتوى ==========
 
+export const approveContent = async (id: string) => {
+  return updateDoc(doc(db, 'content', id), {
+    status: 'approved',
+    updatedAt: serverTimestamp()
+  });
+};
+
+export const rejectContent = async (id: string) => {
+  return updateDoc(doc(db, 'content', id), {
+    status: 'rejected',
+    updatedAt: serverTimestamp()
+  });
+};
+
+export const publishContent = async (id: string) => {
+  return updateDoc(doc(db, 'content', id), {
+    status: 'published',
+    updatedAt: serverTimestamp()
+  });
+};
 // ========== الإيرادات ==========
 export const getRevenue = async () => {
   const snapshot = await getDocs(collection(db, 'revenue'));
