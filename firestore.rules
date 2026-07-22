@@ -1,0 +1,118 @@
+rules_version = "2";
+
+service cloud.firestore {
+
+  match /databases/{database}/documents {
+
+
+    function isLoggedIn() {
+      return request.auth != null;
+    }
+
+
+    function myUser() {
+      return get(
+        /databases/$(database)/documents/users/$(request.auth.uid)
+      ).data;
+    }
+
+
+    function isActive() {
+      return isLoggedIn()
+        && myUser().status != "frozen";
+    }
+
+
+    function role() {
+      return myUser().role;
+    }
+
+
+    function isDirector() {
+      return role() == "director";
+    }
+
+
+    function isDeputy() {
+      return role() == "deputy";
+    }
+
+
+    function isAdmin() {
+      return role() == "admin";
+    }
+
+
+
+    // المستخدمون
+
+    match /users/{userId} {
+
+
+      allow read:
+        if isLoggedIn();
+
+
+      // إنشاء المستخدم عند التسجيل
+      allow create:
+        if isLoggedIn()
+        && request.auth.uid == userId;
+
+
+      // تعديل المستخدمين
+      allow update:
+        if isDirector()
+        ||
+        (
+          (isDeputy() || isAdmin())
+          && resource.data.role == "user"
+          && request.resource.data.role == "user"
+        );
+
+
+      // الحذف:
+      // فقط المستخدم العادي
+      allow delete:
+        if (isDirector() || isDeputy() || isAdmin())
+        && resource.data.role == "user";
+
+    }
+
+
+
+    // المحتوى
+
+    match /content/{contentId} {
+
+      allow read:
+        if true;
+
+
+      allow create, update:
+        if isActive()
+        && (isDirector() || isDeputy() || isAdmin());
+
+
+      allow delete:
+        if isDirector() || isDeputy();
+
+    }
+
+
+
+    // باقي المجموعات
+
+    match /{document=**} {
+
+      allow read:
+        if isLoggedIn();
+
+
+      allow write:
+        if isDirector();
+
+    }
+
+  }
+
+}
