@@ -2,27 +2,34 @@ import { initializeApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, browserLocalPersistence, setPersistence, sendPasswordResetEmail } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
-import { initializeAppCheck, ReCaptchaV3Provider } from 'firebase/app-check';
 
 const firebaseConfig = {
-  apiKey: "AIzaSyBdRwN9oGKZB4ztXmtZEF-0hNt-b6xCqAw",
-  authDomain: "shams-1db5a.firebaseapp.com",
-  projectId: "shams-1db5a",
-  storageBucket: "shams-1db5a.firebasestorage.app",
-  messagingSenderId: "320020297575",
-  appId: "1:320020297575:web:25983830e71ee5b11761c2",
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
 };
 
 const app = initializeApp(firebaseConfig);
 
-// تفعيل App Check مع reCAPTCHA
-try {
-  initializeAppCheck(app, {
-    provider: new ReCaptchaV3Provider('6Ldf4DktAAAAAMMJUhlFjxMaFNGYExVktK5dIVUh'),
-    isTokenAutoRefreshEnabled: true,
+// App Check مفعّل على الإنتاج فقط — بيئة staging لا تحتاج هذي الحماية
+// (مفتاح reCAPTCHA مسجّل خصيصاً لنطاق الإنتاج، وتفعيله على نطاق آخر يفشل بصمت)
+// التحميل كسول (dynamic import) عشان زوار staging ما يحمّلون كود App Check إطلاقاً
+const isProduction = firebaseConfig.projectId === 'shams-1db5a';
+
+if (isProduction) {
+  import('firebase/app-check').then(({ initializeAppCheck, ReCaptchaV3Provider }) => {
+    try {
+      initializeAppCheck(app, {
+        provider: new ReCaptchaV3Provider('6Ldf4DktAAAAAMMJUhlFjxMaFNGYExVktK5dIVUh'),
+        isTokenAutoRefreshEnabled: true,
+      });
+    } catch (e) {
+      console.warn('App Check initialization skipped');
+    }
   });
-} catch (e) {
-  console.warn('App Check initialization skipped');
 }
 
 export const auth = getAuth(app);
@@ -47,3 +54,13 @@ export const resetPassword = (email: string) =>
 export const logout = () => signOut(auth);
 
 export default app;
+
+import { getFunctions, httpsCallable } from 'firebase/functions';
+
+export const functions = getFunctions(app);
+
+export const checkLoginRateLimit = (email: string) =>
+  httpsCallable(functions, 'checkRateLimit')({ email });
+
+export const logLoginAttempt = (email: string, success: boolean) =>
+  httpsCallable(functions, 'logLoginAttempt')({ email, success });

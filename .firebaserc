@@ -1,5 +1,8 @@
 {
   "projects": {
-    "default": "shams-1db5a"
-  }
+    "default": "shams-1db5a",
+    "staging": "shams-staging-c2165"
+  },
+  "targets": {},
+  "etags": {}
 }

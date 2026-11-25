@@ -1,25 +1,56 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useAppStore } from '../../store';
 import { translations } from '../../i18n/translations';
 import { MessageSquare, CheckCircle, XCircle, Trash2 } from 'lucide-react';
+import { subscribeComments, updateCommentStatus, deleteComment } from '../../services/firestore';
+
+interface CommentItem {
+  id: string;
+  user?: string;
+  text?: string;
+  status?: string;
+  createdAt?: any;
+}
 
 export default function Comments() {
   const language = useAppStore(s => s.language);
   const t = translations[language];
-  const [comments, setComments] = useState([
-    { id: 1, user: 'John', text: 'Great video!', status: 'approved', date: '2026-06-28' },
-    { id: 2, user: 'Sarah', text: 'When is the next episode?', status: 'pending', date: '2026-06-27' },
-    { id: 3, user: 'Ahmed', text: 'Amazing quality!', status: 'approved', date: '2026-06-26' },
-    { id: 4, user: 'Emily', text: 'Not working properly.', status: 'flagged', date: '2026-06-25' },
-  ]);
 
-  const handleAction = (id: number, action: string) => {
-    setComments(comments.map(c => c.id === id ? { ...c, status: action } : c));
+  const [comments, setComments] = useState<CommentItem[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const unsubscribe = subscribeComments((data) => {
+      setComments(data as CommentItem[]);
+      setLoading(false);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  const handleAction = (id: string, status: string) => {
+    updateCommentStatus(id, status);
   };
+
+  const handleDelete = (id: string) => {
+    deleteComment(id);
+  };
+
+  const formatDate = (createdAt: any) => {
+    if (createdAt?.toDate) return createdAt.toDate().toLocaleDateString();
+    return '';
+  };
+
+  if (loading) {
+    return (
+      <div className="p-8 text-center text-gray-400">
+        Loading comments...
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-white">💬 {t.comments || 'Comments'}</h1>
+      <h1 className="text-2xl font-bold text-white"> 💬 {t.comments || 'Comments'}</h1>
       <div className="shams-card overflow-x-auto">
         <table className="w-full text-left">
           <thead className="border-b border-gray-800">
@@ -32,6 +63,13 @@ export default function Comments() {
             </tr>
           </thead>
           <tbody>
+            {comments.length === 0 && (
+              <tr>
+                <td colSpan={5} className="py-6 text-center text-gray-500">
+                  {language === 'ar' ? 'لا توجد تعليقات بعد' : 'No comments yet'}
+                </td>
+              </tr>
+            )}
             {comments.map(c => (
               <tr key={c.id} className="border-b border-gray-800/50">
                 <td className="py-3 pr-4 text-white font-medium">{c.user}</td>
@@ -43,12 +81,12 @@ export default function Comments() {
                     'bg-red-500/20 text-red-400'
                   }`}>{c.status}</span>
                 </td>
-                <td className="py-3 pr-4 text-gray-400">{c.date}</td>
+                <td className="py-3 pr-4 text-gray-400">{formatDate(c.createdAt)}</td>
                 <td className="py-3 text-center">
                   <div className="flex items-center justify-center gap-2">
                     <button onClick={() => handleAction(c.id, 'approved')} className="text-green-400 hover:text-green-300"><CheckCircle size={18} /></button>
                     <button onClick={() => handleAction(c.id, 'flagged')} className="text-yellow-400 hover:text-yellow-300"><XCircle size={18} /></button>
-                    <button onClick={() => setComments(comments.filter(x => x.id !== c.id))} className="text-red-400 hover:text-red-300"><Trash2 size={18} /></button>
+                    <button onClick={() => handleDelete(c.id)} className="text-red-400 hover:text-red-300"><Trash2 size={18} /></button>
                   </div>
                 </td>
               </tr>

@@ -6,29 +6,33 @@ import {
   Sparkles, ChevronLeft, ChevronRight, Layers, Radio, Mic, FileText, Star, Trophy, Megaphone, Crown, Search,
 } from 'lucide-react';
 import { useAppStore } from '../../store';
+import { useUserStore } from '../../store';
 import { translations } from '../../i18n/translations';
 
 export default function AdminSidebar() {
   const [collapsed, setCollapsed] = useState(false);
   const language = useAppStore((s) => s.language);
+  const canAccess = useUserStore((s) => s.canAccess);
   const t = translations[language];
   const isRTL = language === 'ar';
 
   const links = [
-    { to: '/admin',               icon: LayoutDashboard, label: t.dashboard      || 'Dashboard'    },
-    { to: '/admin/users',         icon: Users,           label: t.users          || 'Users'         },
-    { to: '/admin/content',       icon: FileVideo,       label: t.content        || 'Content'       },
-    { to: '/admin/upload',        icon: Upload,          label: t.upload         || 'Upload'        },
-    { to: '/admin/scheduler',     icon: Calendar,        label: t.scheduler      || 'Scheduler'     },
-    { to: '/admin/analytics',     icon: BarChart3,       label: t.analytics      || 'Analytics'     },
-    { to: '/admin/revenue',       icon: DollarSign,      label: t.revenue        || 'Revenue'       },
-    { to: '/admin/comments',      icon: MessageSquare,   label: t.comments       || 'Comments'      },
-    { to: '/admin/notifications', icon: Bell,            label: t.notifications  || 'Notifications' },
-    { to: '/admin/activity',      icon: Activity,        label: t.activity       || 'Activity'      },
-    { to: '/admin/settings',      icon: Settings,        label: t.settings       || 'Settings'      },
-    { to: '/admin/roles',         icon: Shield,          label: t.roles          || 'Roles'         },
-    { to: '/admin/ai-suggestions',icon: Sparkles,        label: t.aiSuggestions  || 'AI Tips'       },
-    { to: '/admin/feature-flags', icon: Layers,          label: t.featureFlags   || 'Feature Flags' },
+    { to: '/admin',               icon: LayoutDashboard, label: t.dashboard      || 'Dashboard',     page: 'dashboard'      },
+    { to: '/admin/users',         icon: Users,           label: t.users          || 'Users',          page: 'users'          },
+    { to: '/admin/content',       icon: FileVideo,       label: t.content        || 'Content',        page: 'content'        },
+    { to: '/admin/upload',        icon: Upload,          label: t.upload         || 'Upload',         page: 'upload'         },
+    { to: '/admin/scheduler',     icon: Calendar,        label: t.scheduler      || 'Scheduler',      page: 'scheduler'      },
+    { to: '/admin/analytics',     icon: BarChart3,       label: t.analytics      || 'Analytics',      page: 'analytics'      },
+    { to: '/admin/revenue',       icon: DollarSign,      label: t.revenue        || 'Revenue',        page: 'revenue'        },
+    { to: '/admin/comments',      icon: MessageSquare,   label: t.comments       || 'Comments',       page: 'comments'       },
+    { to: '/admin/notifications', icon: Bell,            label: t.notifications  || 'Notifications',  page: 'notifications'  },
+    { to: '/admin/activity',      icon: Activity,        label: t.activity       || 'Activity',       page: 'activity'       },
+    { to: '/admin/settings',      icon: Settings,        label: t.settings       || 'Settings',       page: 'settings'       },
+    { to: '/admin/roles',         icon: Shield,          label: t.roles          || 'Roles',          page: 'roles'          },
+    { to: '/admin/ai-suggestions',icon: Sparkles,        label: t.aiSuggestions  || 'AI Tips',        page: 'ai-suggestions' },
+    { to: '/admin/feature-flags', icon: Layers,          label: t.featureFlags   || 'Feature Flags',  page: 'feature-flags'  },
+
+    // صفحات عامة بالموقع - ما تخضع لفلترة الصلاحيات
     { to: '/radio',               icon: Radio,           label: t.radio          || 'Radio'         },
     { to: '/ai-studio',           icon: Sparkles,        label: isRTL ? 'استوديو AI' : 'AI Studio'  },
     { to: '/podcasts',            icon: Mic,             label: isRTL ? 'البودكاست' : 'Podcasts'    },
@@ -40,6 +44,11 @@ export default function AdminSidebar() {
     { to: '/search',              icon: Search,          label: isRTL ? 'البحث الذكي' : 'Smart Search'    },
   ];
 
+  // فلترة الروابط: أي رابط له "page" لازم يمر عبر canAccess، وأي رابط بدون "page" (صفحات عامة) يظهر دائماً
+  const visibleLinks = links.filter((link) =>
+    !link.page || canAccess(link.page)
+  );
+
   return (
     <aside className={`${collapsed ? 'w-20' : 'w-64'} bg-gray-900 border-r border-gray-800 flex flex-col transition-all duration-300`}>
       <div className="p-4 border-b border-gray-800 flex items-center justify-between">
@@ -49,7 +58,7 @@ export default function AdminSidebar() {
         </button>
       </div>
       <nav className="flex-1 py-4 space-y-1 px-2 overflow-y-auto">
-        {links.map((link) => (
+        {visibleLinks.map((link) => (
           <NavLink
             key={link.to}
             to={link.to}

@@ -1,8 +1,8 @@
-import { createHashRouter, RouterProvider, Navigate } from 'react-router-dom';
+import { createBrowserRouter, RouterProvider, Navigate, useLocation } from 'react-router-dom';
 import { lazy, Suspense } from 'react';
 import AdminLayout from '../admin/layout/AdminLayout';
 import AdminOTPGuard from '../admin/layout/AdminOTPGuard';
-import { useAuthState } from 'react-firebase-hooks/auth';
+import { useUserStore } from '../features/auth/store';
 import { auth } from '../services/firebase';
 
 const AdminDashboard    = lazy(() => import('../admin/pages/Dashboard'));
@@ -18,16 +18,20 @@ const SettingsPage      = lazy(() => import('../admin/pages/SettingsPage'));
 const Roles             = lazy(() => import('../admin/pages/Roles'));
 const AITips            = lazy(() => import('../admin/pages/AITips'));
 const Login             = lazy(() => import('../admin/pages/Auth/Login'));
-const PublicHome        = lazy(() => import('../admin/pages/PublicHome'));
-const Movies            = lazy(() => import('../admin/pages/Movies'));
-const Series            = lazy(() => import('../admin/pages/Series'));
-const Music             = lazy(() => import('../admin/pages/Music'));
+const PublicHome        = lazy(() => import('../pages/PublicHome'));
+const Reels             = lazy(() => import('../pages/Reels'));
+const Shopping          = lazy(() => import('../pages/Shopping'));
+const AdvertisementsPublic = lazy(() => import('../pages/AdvertisementsPublic'));
+import PublicPromo from '../pages/PublicPromo';
+const Movies            = lazy(() => import('../pages/Movies'));
+const Series            = lazy(() => import('../pages/Series'));
+const Music             = lazy(() => import('../pages/Music'));
 const News              = lazy(() => import('../admin/pages/News'));
 const Games             = lazy(() => import('../admin/pages/Games'));
 const About             = lazy(() => import('../admin/pages/About'));
 const Contact           = lazy(() => import('../admin/pages/Contact'));
 const FeatureFlagsPage  = lazy(() => import('../admin/pages/FeatureFlags'));
-const AIStudio          = lazy(() => import('../admin/pages/AIStudio'));
+const AIStudio          = lazy(() => import('../pages/AIStudio'));
 const Podcasts          = lazy(() => import('../admin/pages/Podcasts'));
 const Articles          = lazy(() => import('../admin/pages/Articles'));
 const KidsZone          = lazy(() => import('../admin/pages/KidsZone'));
@@ -38,21 +42,26 @@ const SmartSearch       = lazy(() => import('../admin/pages/SmartSearch'));
 const UploadPage        = lazy(() => import('../admin/pages/Upload'));
 const WatchPage         = lazy(() => import('../admin/pages/Watch'));
 const RadioPage         = lazy(() => import('../admin/pages/Radio'));
+const Profile = lazy(() => import('../admin/pages/Profile'));
 
 function LazyPage({ children }: { children: React.ReactNode }) {
   return <Suspense fallback={<div style={{ padding: '40px', textAlign: 'center', color: '#c9a050' }}>Loading...</div>}>{children}</Suspense>;
 }
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const [user, loading] = useAuthState(auth);
+  const user = useUserStore(s => s.user);
+  const loading = useUserStore(s => s.authLoading);
+  const location = useLocation();
   if (loading) return <div style={{ padding: '40px', textAlign: 'center', color: '#c9a050', background: '#000', minHeight: '100vh' }}>Initializing session...</div>;
-  if (!user) return <Navigate to="/login" replace />;
+  if (!user) return <Navigate to="/login" state={{ from: location }} replace />;
   return <>{children}</>;
 }
 
-const router = createHashRouter([
+const router = createBrowserRouter([
   { path: '/login', element: <LazyPage><Login /></LazyPage> },
+  { path: '/p/:id', element: <LazyPage><PublicPromo /></LazyPage> },
   { path: '/', element: <ProtectedRoute><PublicHome /></ProtectedRoute> },
+  { path: '/profile', element: <ProtectedRoute><LazyPage><Profile /></LazyPage></ProtectedRoute> },
   {
     path: '/admin',
     element: <AdminOTPGuard><AdminLayout /></AdminOTPGuard>,
@@ -71,8 +80,12 @@ const router = createHashRouter([
       { path: 'ai-suggestions',      element: <LazyPage><AITips /></LazyPage>            },
       { path: 'feature-flags',       element: <LazyPage><FeatureFlagsPage /></LazyPage>  },
       { path: 'upload',              element: <LazyPage><UploadPage /></LazyPage>          },
+                     
     ],
   },
+  { path: '/reels', element: <ProtectedRoute><LazyPage><Reels /></LazyPage></ProtectedRoute> },
+  { path: '/shopping', element: <ProtectedRoute><LazyPage><Shopping /></LazyPage></ProtectedRoute> },
+  { path: '/advertising', element: <ProtectedRoute><LazyPage><AdvertisementsPublic /></LazyPage></ProtectedRoute> },
   { path: '/movies',  element: <ProtectedRoute><LazyPage><Movies /></LazyPage></ProtectedRoute>  },
   { path: '/series',  element: <ProtectedRoute><LazyPage><Series /></LazyPage></ProtectedRoute>  },
   { path: '/music',   element: <ProtectedRoute><LazyPage><Music /></LazyPage></ProtectedRoute>   },

@@ -79,10 +79,10 @@ export default function AdminHeader() {
           <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
         </button>
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-full bg-shams-500 flex items-center justify-center text-black font-bold">
-            <User size={16} />
-          </div>
-          <span className="text-sm font-medium hidden sm:block">{user?.name || 'Admin'}</span>
+              <button onClick={() => navigate('/admin/profile')} className="w-8 h-8 rounded-full bg-shams-500 flex items-center justify-center text-black font-bold">
+                <User size={16} />
+              </button>
+              <span className="text-sm font-medium hidden sm:block">{user?.name || 'Admin'}</span>
         </div>
         <button onClick={handleLogout} className="text-gray-400 hover:text-red-400 p-2 rounded-lg hover:bg-gray-800 transition" title="Logout">
           <LogOut size={18} />

@@ -7,3 +7,6 @@ node_modules/
 *.backup.*
 tatus
 *.backup.ts
+.env.*
+!.env.example
+service-account.json

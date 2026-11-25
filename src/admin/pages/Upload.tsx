@@ -42,13 +42,34 @@ function formatBytes(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
+function extractYouTubeId(url: string): string | null {
+  try {
+    const parsed = new URL(url.trim());
+
+    if (parsed.hostname.includes('youtu.be')) {
+      return parsed.pathname.slice(1).split('/')[0] || null;
+    }
+
+    if (parsed.hostname.includes('youtube.com')) {
+      return parsed.searchParams.get('v');
+    }
+
+    return null;
+  } catch {
+    return null;
+  }
+}
+
 export default function UploadPage() {
-  const language = useAppStore((s) => s.language);
-  const isRTL = language === 'ar';
+  const uiLanguage = useAppStore((s) => s.language);
+  const isRTL = uiLanguage === 'ar';
 
   const [items, setItems] = useState<UploadItem[]>([]);
   const [title, setTitle] = useState('');
   const [titleAr, setTitleAr] = useState('');
+  const [language, setLanguage] = useState<'arabic' | 'foreign'>('foreign');
+  const [artist, setArtist] = useState('');
+  const [youtubeUrl, setYoutubeUrl] = useState('');
   const [category, setCategory] = useState<ContentCategory>('movies');
   const [description, setDescription] = useState('');
   const [isDragging, setIsDragging] = useState(false);
@@ -122,12 +143,51 @@ export default function UploadPage() {
   }
 
   async function handleUploadAll() {
-    const pending = items.filter((i) => i.status === 'pending');
-    if (pending.length === 0) return;
     if (!title.trim()) {
       alert(isRTL ? 'يرجى إدخال عنوان المحتوى' : 'Please enter a content title');
       return;
     }
+
+    const user = auth.currentUser;
+    if (!user) {
+      alert(isRTL ? 'يجب تسجيل الدخول أولًا' : 'Authentication required');
+      return;
+    }
+
+    if (category === 'music') {
+      if (!artist.trim()) {
+        alert(isRTL ? 'يرجى إدخال اسم الفنان' : 'Please enter the artist name');
+        return;
+      }
+
+      await addDoc(collection(db, 'content'), {
+        title,
+        titleAr: titleAr || '',
+        artist,
+        language,
+        category: 'music',
+        description,
+        mediaType: 'video',
+        youtubeId: null,
+        thumbnailUrl: '',
+        url: '',
+        status: 'draft',
+        uploadedBy: user.uid,
+        uploadedByEmail: user.email,
+        createdAt: serverTimestamp(),
+      });
+
+      alert(isRTL ? 'تم حفظ الأغنية كمسودة' : 'Music saved as draft');
+      setTitle('');
+      setTitleAr('');
+      setArtist('');
+      setDescription('');
+      return;
+    }
+
+    const pending = items.filter((i) => i.status === 'pending');
+    if (pending.length === 0) return;
+
     await Promise.allSettled(pending.map(uploadItem));
   }
 
@@ -197,6 +257,37 @@ export default function UploadPage() {
               <option value="podcasts">{isRTL ? 'بودكاست' : 'Podcasts'}</option>
             </select>
           </div>
+          {category === 'music' && (
+            <>
+              <div>
+                <label className="block text-xs text-gray-400 mb-1">
+                  {isRTL ? 'اللغة' : 'Language'}
+                </label>
+                <select
+                  value={language}
+                  onChange={(e) => setLanguage(e.target.value as 'arabic' | 'foreign')}
+                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-shams-500 transition"
+                >
+                  <option value="arabic">{isRTL ? '🇸🇾 عربي' : '🇸🇾 Arabic'}</option>
+                  <option value="foreign">{isRTL ? '🌍 أجنبي' : '🌍 Foreign'}</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs text-gray-400 mb-1">
+                  {isRTL ? 'اسم الفنان' : 'Artist'}
+                </label>
+                <input
+                  type="text"
+                  value={artist}
+                  onChange={(e) => setArtist(e.target.value)}
+                  placeholder={isRTL ? 'اسم الفنان...' : 'Artist name...'}
+                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-shams-500 transition"
+                />
+              </div>
+            </>
+          )}
+
           <div>
             <label className="block text-xs text-gray-400 mb-1">
               {isRTL ? 'الوصف' : 'Description'}
@@ -289,7 +380,7 @@ export default function UploadPage() {
             );
           })}
 
-          {pendingCount > 0 && (
+          {(category === 'music' || pendingCount > 0) && (
             <button
               onClick={handleUploadAll}
               className="w-full shams-btn-primary flex items-center justify-center gap-2 py-3"

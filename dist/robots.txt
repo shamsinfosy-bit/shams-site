@@ -1,3 +1,3 @@
 User-agent: *
 Allow: /
-Sitemap: https://shamsinfosy-bit.github.io/shams-site/sitemap.xml
+Sitemap: https://shams-staging-c2165.web.app/sitemap.xml

@@ -1,12 +1,12 @@
-export type FeatureFlagKey =
-  | 'movies' | 'series' | 'music' | 'news' | 'games'
-  | 'watch' | 'radio' | 'podcasts' | 'articles' | 'kidsZone' | 'sports'
-  | 'aiStudio' | 'aiSuggestions' | 'smartSearch'
-  | 'upload'
-  | 'adminDashboard' | 'userManagement' | 'contentManagement'
-  | 'analytics' | 'revenue' | 'comments' | 'scheduler'
-  | 'notifications' | 'activityLog' | 'settings' | 'roles'
-  | 'advertisements' | 'subscriptions'
+export type FeatureFlagKey = 
+  | 'movies' | 'series' | 'music' | 'news' | 'games' 
+  | 'watch' | 'radio' | 'podcasts' | 'articles' | 'kidsZone' | 'sports' 
+  | 'aiStudio' | 'aiSuggestions' | 'smartSearch' 
+  | 'upload' 
+  | 'adminDashboard' | 'userManagement' | 'contentManagement' 
+  | 'analytics' | 'revenue' | 'comments' | 'scheduler' 
+  | 'notifications' | 'activityLog' | 'settings' | 'roles' 
+  | 'advertisements' | 'subscriptions' | 'shopping'
   | 'seoOptimization' | 'multiLanguage';
 
 export interface FeatureFlag {
@@ -27,7 +27,7 @@ export const DEFAULT_FEATURE_FLAGS: FeatureFlagsMap = {
   adminDashboard: true, userManagement: true, contentManagement: true,
   analytics: true, revenue: true, comments: true, scheduler: true,
   notifications: true, activityLog: false, settings: true, roles: true,
-  advertisements: false, subscriptions: false,
+  advertisements: false, subscriptions: false, shopping: true,
   seoOptimization: false, multiLanguage: true,
 };
 
@@ -36,6 +36,6 @@ export const FEATURE_FLAG_CATEGORIES: Record<string, FeatureFlagKey[]> = {
   ai: ['aiStudio','aiSuggestions','smartSearch'],
   creator: ['upload'],
   admin: ['adminDashboard','userManagement','contentManagement','analytics','revenue','comments','scheduler','notifications','activityLog','settings','roles'],
-  business: ['advertisements','subscriptions'],
+  business: ['advertisements','subscriptions','shopping'],
   platform: ['seoOptimization','multiLanguage'],
 };

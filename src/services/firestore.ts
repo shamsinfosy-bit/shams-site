@@ -45,6 +45,7 @@ export const subscribeContent = (callback: (content: any[]) => void) => {
 export const approveContent = async (id: string) => {
   return updateDoc(doc(db, 'content', id), {
     status: 'approved',
+    approved: true,
     updatedAt: serverTimestamp()
   });
 };
@@ -52,6 +53,7 @@ export const approveContent = async (id: string) => {
 export const rejectContent = async (id: string) => {
   return updateDoc(doc(db, 'content', id), {
     status: 'rejected',
+    approved: false,
     updatedAt: serverTimestamp()
   });
 };
@@ -79,4 +81,43 @@ export const getNotifications = async (userId: string) => {
   const q = query(collection(db, 'notifications'), where('userId', '==', userId));
   const snapshot = await getDocs(q);
   return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+};
+
+export const saveComment = async (id: string, data: any) => {
+  return setDoc(doc(db, 'comments', id), { ...data, updatedAt: serverTimestamp() }, { merge: true });
+};
+
+export const deleteComment = async (id: string) => {
+  return deleteDoc(doc(db, 'comments', id));
+};
+
+export const subscribeComments = (callback: (comments: any[]) => void) => {
+  return onSnapshot(collection(db, 'comments'), (snapshot) => {
+    callback(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+  });
+};
+
+export const updateCommentStatus = async (id: string, status: string) => {
+  return updateDoc(doc(db, 'comments', id), {
+    status,
+    updatedAt: serverTimestamp()
+  });
+};
+
+export const subscribeNotifications = (userId: string, callback: (notifs: any[]) => void) => {
+  const q = query(collection(db, 'notifications'), where('userId', '==', userId));
+  return onSnapshot(q, (snapshot) => {
+    callback(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+  });
+};
+
+export const markNotificationRead = async (id: string) => {
+  return updateDoc(doc(db, 'notifications', id), {
+    read: true,
+    updatedAt: serverTimestamp()
+  });
+};
+
+export const deleteNotification = async (id: string) => {
+  return deleteDoc(doc(db, 'notifications', id));
 };
