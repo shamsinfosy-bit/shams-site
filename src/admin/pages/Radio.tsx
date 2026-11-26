@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { collection, query, where, onSnapshot } from 'firebase/firestore';
+import { collection, query, where, getDocs, getCountFromServer } from 'firebase/firestore';
 import { db } from '../../services/firebase';
 import { useAppStore } from '../../store';
 import { Radio, Play, Pause, Volume2, VolumeX, Signal, ArrowLeft, ArrowRight, SkipBack, SkipForward } from 'lucide-react';
@@ -78,14 +78,6 @@ const FlagIcon = ({ k, size }: { k: string; size: 'lg' | 'sm' }) => {
   return <span className={`${size === 'lg' ? 'text-5xl' : 'text-3xl'} leading-none`}>{emoji}</span>;
 };
 
-const FALLBACK: RadioStation[] = [
-  { id: 'd1', title: 'SHAMS Music', titleAr: 'شمس موسيقى', url: '', description: 'Coming soon', descriptionAr: 'قريباً', genre: 'music', status: 'published' },
-  { id: 'd2', title: 'SHAMS News', titleAr: 'شمس أخبار', url: '', description: 'Coming soon', descriptionAr: 'قريباً', genre: 'news', status: 'published' },
-];
-
-const groupKeyOf = (st: any): string =>
-  st.genre === 'quran' ? 'quran' : FOLDERS[st.country] ? st.country : 'other';
-
 export default function RadioPage() {
   const language = useAppStore((s) => s.language);
   const isRTL = language === 'ar';
@@ -93,7 +85,7 @@ export default function RadioPage() {
     language === 'ar' ? ar : language === 'ru' ? ru : language === 'fr' ? fr : en;
   const nameOf = (st: any) =>
     (language === 'ar' ? st.titleAr : language === 'ru' ? st.titleRu : language === 'fr' ? st.titleFr : '') || st.title;
-  const [stations, setStations] = useState<RadioStation[]>([]);
+  const [loaded, setLoaded] = useState<Record<string, RadioStation[]>>({});
   const [loading, setLoading] = useState(true);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [playing, setPlaying] = useState(false);
@@ -103,6 +95,9 @@ export default function RadioPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const folder = params.get('c');
+  const [counts, setCounts] = useState<Record<string, number>>({});
+  const [current, setCurrent] = useState<RadioStation | null>(null);
+  const [playlist, setPlaylist] = useState<RadioStation[]>([]);
   const openFolder = (k: string) => setParams({ c: k });
   const closeFolder = () => (location.key !== 'default' ? navigate(-1) : setParams({}, { replace: true }));
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -113,17 +108,42 @@ export default function RadioPage() {
   const waitTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
-    const q = query(collection(db, 'content'), where('category', '==', 'radio'), where('status', '==', 'published'));
-    const unsub = onSnapshot(q,
-      (snap) => {
-        const data = snap.docs.map((d) => ({ id: d.id, ...d.data() } as RadioStation));
-        setStations(data.length > 0 ? [...data].sort(byOrder) : FALLBACK);
-        setLoading(false);
-      },
-      () => { setStations(FALLBACK); setLoading(false); }
-    );
-    return () => unsub();
+    let cancelled = false;
+    const keys = [...COUNTRY_ORDER, 'other', 'quran'];
+    Promise.all(keys.map(async (k) => {
+      const q = query(collection(db, 'content'), where('category', '==', 'radio'), where('status', '==', 'published'), where('folder', '==', k));
+      const r = await getCountFromServer(q);
+      return [k, r.data().count] as [string, number];
+    })).then((rows) => {
+      if (cancelled) return;
+      const c: Record<string, number> = {};
+      rows.forEach(([k, n]) => { if (n > 0) c[k] = n; });
+      setCounts(c);
+      setLoading(false);
+    }).catch(() => {
+      if (cancelled) return;
+      setCounts({});
+      setError(tr('تعذّر تحميل المحطات', 'Could not load stations', 'Не удалось загрузить станции', 'Impossible de charger les stations'));
+      setLoading(false);
+    });
+    return () => { cancelled = true; };
   }, []);
+
+  useEffect(() => {
+    if (!folder || loaded[folder]) return;
+    let cancelled = false;
+    const q = query(collection(db, 'content'), where('category', '==', 'radio'), where('status', '==', 'published'), where('folder', '==', folder));
+    getDocs(q).then((snap) => {
+      if (cancelled) return;
+      const data = snap.docs.map((d) => ({ id: d.id, ...d.data() } as RadioStation)).sort(byOrder);
+      setLoaded((p) => ({ ...p, [folder]: data }));
+    }).catch(() => {
+      if (cancelled) return;
+      setError(tr('تعذّر تحميل المحطات', 'Could not load stations', 'Не удалось загрузить станции', 'Impossible de charger les stations'));
+      setLoaded((p) => ({ ...p, [folder]: [] }));
+    });
+    return () => { cancelled = true; };
+  }, [folder]);
 
   function clearTimers() {
     if (retryTimerRef.current) { window.clearTimeout(retryTimerRef.current); retryTimerRef.current = null; }
@@ -160,7 +180,7 @@ export default function RadioPage() {
     }, Math.min(2000 * retryRef.current, 8000));
   }
 
-  function playStation(station: RadioStation) {
+  function playStation(station: RadioStation, list?: RadioStation[]) {
     if (!station.url) { setError(tr('المحطة غير متاحة', 'Station not available', 'Станция недоступна', 'Station indisponible')); return; }
     setError(null);
     clearTimers();
@@ -173,6 +193,8 @@ export default function RadioPage() {
       safePlay();
     }
     setActiveId(station.id);
+    setCurrent(station);
+    if (list) setPlaylist(list);
     setPlaying(true);
   }
 
@@ -203,17 +225,8 @@ export default function RadioPage() {
     setMuted(!muted);
   }
 
-  const groups: Record<string, RadioStation[]> = {};
-  stations.forEach((st) => {
-    const key = groupKeyOf(st);
-    (groups[key] = groups[key] || []).push(st);
-  });
-
-  const activeStation = stations.find((s) => s.id === activeId);
+  const activeStation = current;
   const activeTitle = activeStation ? nameOf(activeStation) : null;
-
-  // التقديم/الترجيع داخل نفس مجلد المحطة الحالية (بشكل دائري)
-  const playlist = activeStation ? groups[groupKeyOf(activeStation)] || [] : [];
   const canStep = playlist.length > 1;
   function step(dir: 1 | -1) {
     if (!activeStation || playlist.length < 2) return;
@@ -280,7 +293,7 @@ export default function RadioPage() {
     };
   }, []);
 
-  const folderKeys = [...COUNTRY_ORDER, 'other', 'quran'].filter((k) => groups[k]);
+  const folderKeys = [...COUNTRY_ORDER, 'other', 'quran'].filter((k) => counts[k]);
   const folderName = (k: string) => {
     const f = FOLDERS[k];
     return f ? tr(f[0], f[1], f[2], f[3]) : tr('أخرى', 'Other', 'Другие', 'Autres');
@@ -350,7 +363,11 @@ export default function RadioPage() {
           <div className="flex items-center justify-center min-h-[200px]">
             <div className="w-8 h-8 border-2 border-shams-500 border-t-transparent rounded-full animate-spin" />
           </div>
-        ) : folder === null || !groups[folder] ? (
+        ) : folder !== null && !loaded[folder] ? (
+          <div className="flex items-center justify-center min-h-[200px]">
+            <div className="w-8 h-8 border-2 border-shams-500 border-t-transparent rounded-full animate-spin" />
+          </div>
+        ) : folder === null ? (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {folderKeys.map((key) => (
               <button
@@ -360,7 +377,7 @@ export default function RadioPage() {
               >
                 <FlagIcon k={key} size="lg" />
                 <span className="text-white font-semibold text-center">{folderName(key)}</span>
-                <span className="text-xs text-gray-500">{groups[key].length} {stationsLabel}</span>
+                <span className="text-xs text-gray-500">{counts[key]} {stationsLabel}</span>
               </button>
             ))}
           </div>
@@ -378,7 +395,7 @@ export default function RadioPage() {
               <h2 className="text-xl font-bold text-white">{folderName(folder)}</h2>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {groups[folder].map((station) => {
+              {loaded[folder].map((station) => {
                 const sTitle = nameOf(station);
                 const cc = (station as any).country as string;
                 const sDesc = FOLDERS[cc]
@@ -386,7 +403,7 @@ export default function RadioPage() {
                   : isRTL && station.descriptionAr ? station.descriptionAr : station.description;
                 const isActive = activeId === station.id;
                 return (
-                  <button key={station.id} onClick={() => playStation(station)}
+                  <button key={station.id} onClick={() => playStation(station, loaded[folder])}
                     className={`shams-card text-start w-full transition-all ${isActive ? 'border-shams-500/50 bg-shams-500/5' : ''}`}>
                     <div className="flex items-center gap-3">
                       <div className={`w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 ${isActive ? 'bg-shams-500/20 border border-shams-500/40' : 'bg-gray-800'}`}>
