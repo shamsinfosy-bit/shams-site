@@ -1,3 +1,0 @@
-User-agent: *
-Allow: /
-Sitemap: https://shams-staging-c2165.web.app/sitemap.xml

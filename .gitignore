@@ -10,3 +10,5 @@ tatus
 .env.*
 !.env.example
 service-account.json
+dist
+*.bak
