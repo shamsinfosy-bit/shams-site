@@ -309,7 +309,7 @@ export default function RadioPage() {
         </div>
 
         {activeStation && (
-          <div className="shams-card flex items-center gap-4">
+          <div className="shams-card flex flex-wrap items-center gap-4">
             <div className="w-14 h-14 rounded-full bg-shams-500/10 border border-shams-500/30 flex items-center justify-center flex-shrink-0">
               <Radio size={24} className="text-shams-400" />
             </div>
@@ -317,7 +317,7 @@ export default function RadioPage() {
               <p className="text-white font-bold truncate">{activeTitle}</p>
               <p className="text-xs text-shams-400">{tr('يُبث الآن', 'Now Playing', 'Сейчас в эфире', 'En cours de lecture')}</p>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex w-full items-center justify-center gap-6">
               <button onClick={toggleMute} className="text-gray-400 hover:text-white transition" aria-label="mute">
                 {muted ? <VolumeX size={20} /> : <Volume2 size={20} />}
               </button>
@@ -327,10 +327,10 @@ export default function RadioPage() {
                 aria-label={tr('المحطة السابقة', 'Previous station', 'Предыдущая станция', 'Station précédente')}
                 className="text-gray-400 hover:text-white transition disabled:opacity-30"
               >
-                <PrevIcon size={22} />
+                <PrevIcon size={30} />
               </button>
-              <button onClick={togglePlay} className="w-10 h-10 bg-shams-500 rounded-full flex items-center justify-center hover:bg-shams-400 transition" aria-label="play/pause">
-                {playing ? <Pause size={18} className="text-black" /> : <Play size={18} className="text-black" />}
+              <button onClick={togglePlay} className="w-12 h-12 bg-shams-500 rounded-full flex items-center justify-center hover:bg-shams-400 transition" aria-label="play/pause">
+                {playing ? <Pause size={22} className="text-black" /> : <Play size={22} className="text-black" />}
               </button>
               <button
                 onClick={() => step(1)}
@@ -338,7 +338,7 @@ export default function RadioPage() {
                 aria-label={tr('المحطة التالية', 'Next station', 'Следующая станция', 'Station suivante')}
                 className="text-gray-400 hover:text-white transition disabled:opacity-30"
               >
-                <NextIcon size={22} />
+                <NextIcon size={30} />
               </button>
             </div>
           </div>
