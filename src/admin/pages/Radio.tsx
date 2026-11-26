@@ -101,6 +101,8 @@ export default function RadioPage() {
   const openFolder = (k: string) => setParams({ c: k });
   const closeFolder = () => (location.key !== 'default' ? navigate(-1) : setParams({}, { replace: true }));
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const spareRef = useRef<HTMLAudioElement | null>(null);
+  const stagingRef = useRef<HTMLAudioElement | null>(null);
   const wantPlayRef = useRef(false);
   const retryRef = useRef(0);
   const activeUrlRef = useRef('');
@@ -145,6 +147,22 @@ export default function RadioPage() {
     return () => { cancelled = true; };
   }, [folder]);
 
+  // المحطة الجديدة تُحمَّل على عنصر ثانٍ والقديمة تعمل؛ هنا نعتمد الجديد ونوقف القديم
+  function commitSwap() {
+    const nxt = stagingRef.current;
+    if (!nxt) return;
+    stagingRef.current = null;
+    const old = audioRef.current;
+    audioRef.current = nxt;
+    spareRef.current = old;
+    if (old && old !== nxt) {
+      nxt.muted = old.muted;
+      old.pause();
+      old.removeAttribute("src");
+      old.load();
+    }
+  }
+
   function clearTimers() {
     if (retryTimerRef.current) { window.clearTimeout(retryTimerRef.current); retryTimerRef.current = null; }
     if (waitTimerRef.current) { window.clearTimeout(waitTimerRef.current); waitTimerRef.current = null; }
@@ -161,6 +179,7 @@ export default function RadioPage() {
   }
 
   function reconnect() {
+    commitSwap();
     if (!wantPlayRef.current || !audioRef.current || !activeUrlRef.current) return;
     if (retryTimerRef.current) return; // محاولة مجدولة بالفعل: تجاهل الاستدعاء المكرر
     if (retryRef.current >= 5) {
@@ -192,7 +211,18 @@ export default function RadioPage() {
       navigator.mediaSession.metadata = new MediaMetadata({ title: nameOf(station) || "Shams Radio", artist: "Shams Radio", artwork: [] });
       navigator.mediaSession.playbackState = "playing";
     }
-    audioRef.current.src = station.url;
+    const cur = audioRef.current;
+      const nxt = spareRef.current;
+      if (cur && nxt && cur.src && !cur.paused) {
+        nxt.muted = cur.muted;
+        nxt.src = station.url;
+        stagingRef.current = nxt;
+        nxt.play().catch((e) => { if (e && e.name === "AbortError") return; reconnect(); });
+        waitTimerRef.current = window.setTimeout(() => { waitTimerRef.current = null; reconnect(); }, 10000);
+      } else {
+        commitSwap();
+        (audioRef.current as HTMLAudioElement).src = station.url;
+      }
       safePlay();
     }
     setActiveId(station.id);
@@ -204,6 +234,7 @@ export default function RadioPage() {
   function pauseStation() {
     wantPlayRef.current = false;
     clearTimers();
+    commitSwap();
     audioRef.current?.pause();
     setPlaying(false);
   }
@@ -430,21 +461,30 @@ export default function RadioPage() {
             </div>
           </div>
         )}
-        <audio
-          ref={audioRef}
-          onError={() => reconnect()}
-          onPlaying={() => {
-            retryRef.current = 0;
-            setError(null);
-            setPlaying(true);
-            if (waitTimerRef.current) { window.clearTimeout(waitTimerRef.current); waitTimerRef.current = null; }
-          }}
-          onWaiting={() => {
-            if (!wantPlayRef.current) return;
-            if (waitTimerRef.current) window.clearTimeout(waitTimerRef.current);
-            waitTimerRef.current = window.setTimeout(() => { waitTimerRef.current = null; reconnect(); }, 10000);
-          }}
-        />
+        {[audioRef, spareRef].map((r, i) => (
+          <audio
+            key={i}
+            ref={r}
+            onError={(e) => {
+              if (e.currentTarget !== audioRef.current && e.currentTarget !== stagingRef.current) return;
+              reconnect();
+            }}
+            onPlaying={(e) => {
+              if (e.currentTarget === stagingRef.current) commitSwap();
+              if (e.currentTarget !== audioRef.current) return;
+              retryRef.current = 0;
+              setError(null);
+              setPlaying(true);
+              if (waitTimerRef.current) { window.clearTimeout(waitTimerRef.current); waitTimerRef.current = null; }
+            }}
+            onWaiting={(e) => {
+              if (!wantPlayRef.current) return;
+              if (e.currentTarget !== audioRef.current && e.currentTarget !== stagingRef.current) return;
+              if (waitTimerRef.current) window.clearTimeout(waitTimerRef.current);
+              waitTimerRef.current = window.setTimeout(() => { waitTimerRef.current = null; reconnect(); }, 10000);
+            }}
+          />
+        ))}
       </div>
     </FeatureGate>
   );
