@@ -188,8 +188,11 @@ export default function RadioPage() {
     wantPlayRef.current = true;
     retryRef.current = 0;
     if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current.src = station.url;
+      if ("mediaSession" in navigator) {
+      navigator.mediaSession.metadata = new MediaMetadata({ title: nameOf(station) || "Shams Radio", artist: "Shams Radio", artwork: [] });
+      navigator.mediaSession.playbackState = "playing";
+    }
+    audioRef.current.src = station.url;
       safePlay();
     }
     setActiveId(station.id);

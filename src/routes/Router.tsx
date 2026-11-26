@@ -95,6 +95,7 @@ const router = createBrowserRouter([
   { path: '/contact', element: <ProtectedRoute><LazyPage><Contact /></LazyPage></ProtectedRoute> },
   { path: '/watch/:id', element: <ProtectedRoute><LazyPage><WatchPage /></LazyPage></ProtectedRoute> },
   { path: '/radio', element: <ProtectedRoute><LazyPage><RadioPage /></LazyPage></ProtectedRoute> },
+  { path: '/app', element: <LazyPage><RadioPage /></LazyPage> },
   { path: '/ai-studio', element: <ProtectedRoute><LazyPage><AIStudio /></LazyPage></ProtectedRoute> },
   { path: '/podcasts', element: <ProtectedRoute><LazyPage><Podcasts /></LazyPage></ProtectedRoute> },
   { path: '/articles', element: <ProtectedRoute><LazyPage><Articles /></LazyPage></ProtectedRoute> },
