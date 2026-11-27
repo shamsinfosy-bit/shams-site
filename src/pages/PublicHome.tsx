@@ -17,6 +17,7 @@ const languages: { code: Language; label: string }[] = [
   { code: 'ar', label: 'AR' },
   { code: 'fr', label: 'FR' },
   { code: 'ru', label: 'RU' },
+  { code: 'tr', label: 'TR' },
 ];
 
 export default function PublicHome() {
@@ -62,23 +63,44 @@ export default function PublicHome() {
   }, []);
 
 
+  const lbl = (ar: string, en: string, ru: string, fr: string, tk: string) =>
+    language === 'ar' ? ar : language === 'ru' ? ru : language === 'fr' ? fr : language === 'tr' ? tk : en;
+
   const quickLinks = [
-    { to: '/reels',      icon: Play,        label: isRTL ? 'الريلز' : 'Reels' },
-    { to: '/advertising', icon: Megaphone,   label: isRTL ? 'الإعلانات' : 'Advertising' },
-    { to: '/shopping',   icon: ShoppingBag, label: isRTL ? 'التسوق' : 'Shopping' },
+    { to: '/reels',      icon: Play,        label: lbl('الريلز', 'Reels', 'Рилсы', 'Reels', 'Reels') },
+    { to: '/advertising', icon: Megaphone,   label: lbl('الإعلانات', 'Advertising', 'Реклама', 'Publicité', 'Reklam') },
+    { to: '/shopping',   icon: ShoppingBag, label: lbl('التسوق', 'Shopping', 'Покупки', 'Boutique', 'Alışveriş') },
     { to: '/movies',   icon: Film,      label: t.movies  || 'Movies'    },
     { to: '/series',   icon: Tv,        label: t.series  || 'Series'    },
     { to: '/music',    icon: Music,     label: t.music   || 'Music'     },
     { to: '/news',     icon: Newspaper, label: t.news    || 'News'      },
     { to: '/games',    icon: Gamepad2,  label: t.games   || 'Games'     },
     { to: '/radio',    icon: Radio,     label: t.radio   || 'Radio'     },
-    { to: '/podcasts', icon: Mic,       label: isRTL ? 'بودكاست'   : 'Podcasts'   },
-    { to: '/articles', icon: FileText,  label: isRTL ? 'مقالات'    : 'Articles'   },
-    { to: '/kids',     icon: Baby,      label: isRTL ? 'أطفال'     : 'Kids'       },
-    { to: '/sports',   icon: Trophy,    label: isRTL ? 'رياضة'     : 'Sports'     },
-    { to: '/search',   icon: Search,    label: isRTL ? 'بحث'       : 'Search'     },
-    { to: '/ai-studio',icon: Sparkles,  label: isRTL ? 'استوديو AI': 'AI Studio'  },
+    { to: '/podcasts', icon: Mic,       label: lbl('بودكاست', 'Podcasts', 'Подкасты', 'Podcasts', 'Podcast')   },
+    { to: '/articles', icon: FileText,  label: lbl('مقالات', 'Articles', 'Статьи', 'Articles', 'Makaleler')   },
+    { to: '/kids',     icon: Baby,      label: lbl('أطفال', 'Kids', 'Дети', 'Enfants', 'Çocuk')       },
+    { to: '/sports',   icon: Trophy,    label: lbl('رياضة', 'Sports', 'Спорт', 'Sport', 'Spor')     },
+    { to: '/search',   icon: Search,    label: lbl('بحث', 'Search', 'Поиск', 'Recherche', 'Ara')     },
+    { to: '/ai-studio',icon: Sparkles,  label: lbl('استوديو AI', 'AI Studio', 'AI-студия', 'Studio IA', 'YZ Stüdyosu')  },
   ];
+
+  const apps = [
+    { id: 'radio', name: lbl('راديو شمس', 'SHAMS Radio', 'Радио SHAMS', 'Radio SHAMS', 'SHAMS Radyo'), desc: lbl('أكثر من ٥٠٠ محطة مباشرة', '500+ live stations', 'Более 500 радиостанций в прямом эфире', 'Plus de 500 stations en direct', '500\'den fazla canlı radyo'), icon: '/icon-192.png', to: '/app' },
+  ];
+  const deferredRef = useRef<any>(null);
+  const [installHelp, setInstallHelp] = useState(false);
+  useEffect(() => {
+    const onPrompt = (e: any) => { e.preventDefault(); deferredRef.current = e; };
+    window.addEventListener('beforeinstallprompt', onPrompt);
+    return () => window.removeEventListener('beforeinstallprompt', onPrompt);
+  }, []);
+  const installApp = async () => {
+    const d = deferredRef.current;
+    if (!d) { setInstallHelp(true); return; }
+    d.prompt();
+    try { await d.userChoice; } catch { /* ignore */ }
+    deferredRef.current = null;
+  };
 
   const handleLogout = async () => {
     await doLogout();
@@ -170,6 +192,34 @@ export default function PublicHome() {
             </Link>
           ))}
         </div>
+      </section>
+
+      {/* Apps */}
+      <section className="max-w-4xl mx-auto px-4 pb-12">
+        <h2 className="text-xl font-bold text-white text-center mb-4">{lbl('تطبيقاتنا', 'Our Apps', 'Наши приложения', 'Nos applications', 'Uygulamalarımız')}</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {apps.map((a) => (
+            <div key={a.id} className="shams-card flex items-center gap-4">
+              <img src={a.icon} alt={a.name} className="w-14 h-14 rounded-2xl flex-shrink-0" />
+              <div className="flex-1 min-w-0">
+                <p className="text-white font-bold">{a.name}</p>
+                <p className="text-xs text-gray-400">{a.desc}</p>
+              </div>
+              <div className="flex flex-col gap-2">
+                <Link to={a.to} className="shams-btn-primary text-sm px-4 py-1.5 text-center">{lbl('فتح', 'Open', 'Открыть', 'Ouvrir', 'Aç')}</Link>
+                <button onClick={installApp} className="shams-btn-ghost text-sm px-4 py-1.5">{lbl('تثبيت', 'Install', 'Установить', 'Installer', 'Yükle')}</button>
+              </div>
+            </div>
+          ))}
+        </div>
+        {installHelp && (
+          <p className="text-xs text-gray-400 text-center mt-3">{lbl(
+            'للتثبيت على الآيفون: اضغط مشاركة ثم "إضافة إلى الشاشة الرئيسية". على أندرويد: القائمة ثم "تثبيت التطبيق".',
+            'On iPhone: tap Share, then "Add to Home Screen". On Android: open the browser menu, then "Install app".',
+            'На iPhone: «Поделиться» → «На экран Домой». На Android: меню браузера → «Установить приложение».',
+            'Sur iPhone : Partager, puis « Sur l’écran d’accueil ». Sur Android : menu du navigateur, puis « Installer l’application ».',
+            'iPhone\'da: Paylaş, ardından "Ana Ekrana Ekle". Android\'de: tarayıcı menüsü, ardından "Uygulamayı yükle".')}</p>
+        )}
       </section>
 
       {/* Featured */}

@@ -12,3 +12,4 @@ tatus
 service-account.json
 dist
 *.bak
+*.log
