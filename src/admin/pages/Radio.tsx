@@ -18,7 +18,7 @@ interface RadioStation {
   status: string;
 }
 
-const COUNTRY_ORDER = ['SY', 'LB', 'PS', 'JO', 'IQ', 'SA', 'AE', 'QA', 'KW', 'BH', 'OM', 'YE', 'EG', 'SD', 'LY', 'TN', 'DZ', 'MA', 'GB', 'US', 'FR', 'RU'];
+const COUNTRY_ORDER = ['SY', 'LB', 'PS', 'JO', 'IQ', 'SA', 'AE', 'QA', 'KW', 'BH', 'OM', 'YE', 'EG', 'SD', 'LY', 'TN', 'DZ', 'MA', 'GB', 'US', 'FR', 'RU', 'TR'];
 const stationRank = (x: any) => {
   if (x.genre === 'quran') return 1000;
   const i = COUNTRY_ORDER.indexOf(x.country);
@@ -50,6 +50,7 @@ const FOLDERS: Record<string, [string, string, string, string, string]> = {
   US: ['أمريكا', 'United States', 'США', 'États-Unis', 'Amerika Birleşik Devletleri'],
   FR: ['فرنسا', 'France', 'Франция', 'France', 'Fransa'],
   RU: ['روسيا', 'Russia', 'Россия', 'Russie', 'Rusya'],
+  TR: ['تركيا', 'Turkey', 'Турция', 'Turquie', 'Türkiye'],
   quran: ['القرآن الكريم', 'Holy Quran', 'Священный Коран', 'Saint Coran', 'Kur\'an-ı Kerim'],
 };
 const flagOf = (code: string) =>
