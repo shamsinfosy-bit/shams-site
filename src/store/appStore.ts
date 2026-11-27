@@ -3,12 +3,12 @@ import { create } from 'zustand';
 interface AppState {
   sidebarCollapsed: boolean;
   mobileMenuOpen: boolean;
-  language: 'en' | 'ar' | 'fr' | 'ru';
+  language: 'en' | 'ar' | 'fr' | 'ru' | 'tr';
   darkMode: boolean;
   setSidebarCollapsed: (v: boolean) => void;
   setMobileMenuOpen: (v: boolean) => void;
   toggleSidebar: () => void;
-  setLanguage: (lang: 'en' | 'ar' | 'fr' | 'ru') => void;
+  setLanguage: (lang: 'en' | 'ar' | 'fr' | 'ru' | 'tr') => void;
   toggleDarkMode: () => void;
 }
 

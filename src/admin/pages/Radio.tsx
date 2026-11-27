@@ -27,30 +27,30 @@ const stationRank = (x: any) => {
 const byOrder = (a: any, b: any) =>
   stationRank(a) - stationRank(b) || String(a.title).localeCompare(String(b.title));
 
-const FOLDERS: Record<string, [string, string, string, string]> = {
-  SY: ['سوريا', 'Syria', 'Сирия', 'Syrie'],
-  LB: ['لبنان', 'Lebanon', 'Ливан', 'Liban'],
-  JO: ['الأردن', 'Jordan', 'Иордания', 'Jordanie'],
-  IQ: ['العراق', 'Iraq', 'Ирак', 'Irak'],
-  SA: ['السعودية', 'Saudi Arabia', 'Саудовская Аравия', 'Arabie saoudite'],
-  AE: ['الإمارات', 'United Arab Emirates', 'ОАЭ', 'Émirats arabes unis'],
-  QA: ['قطر', 'Qatar', 'Катар', 'Qatar'],
-  KW: ['الكويت', 'Kuwait', 'Кувейт', 'Koweït'],
-  EG: ['مصر', 'Egypt', 'Египет', 'Égypte'],
-  MA: ['المغرب', 'Morocco', 'Марокко', 'Maroc'],
-  PS: ['فلسطين', 'Palestine', 'Палестина', 'Palestine'],
-  BH: ['البحرين', 'Bahrain', 'Бахрейн', 'Bahreïn'],
-  OM: ['عُمان', 'Oman', 'Оман', 'Oman'],
-  YE: ['اليمن', 'Yemen', 'Йемен', 'Yémen'],
-  SD: ['السودان', 'Sudan', 'Судан', 'Soudan'],
-  LY: ['ليبيا', 'Libya', 'Ливия', 'Libye'],
-  TN: ['تونس', 'Tunisia', 'Тунис', 'Tunisie'],
-  DZ: ['الجزائر', 'Algeria', 'Алжир', 'Algérie'],
-  GB: ['بريطانيا', 'United Kingdom', 'Великобритания', 'Royaume-Uni'],
-  US: ['أمريكا', 'United States', 'США', 'États-Unis'],
-  FR: ['فرنسا', 'France', 'Франция', 'France'],
-  RU: ['روسيا', 'Russia', 'Россия', 'Russie'],
-  quran: ['القرآن الكريم', 'Holy Quran', 'Священный Коран', 'Saint Coran'],
+const FOLDERS: Record<string, [string, string, string, string, string]> = {
+  SY: ['سوريا', 'Syria', 'Сирия', 'Syrie', 'Suriye'],
+  LB: ['لبنان', 'Lebanon', 'Ливан', 'Liban', 'Lübnan'],
+  JO: ['الأردن', 'Jordan', 'Иордания', 'Jordanie', 'Ürdün'],
+  IQ: ['العراق', 'Iraq', 'Ирак', 'Irak', 'Irak'],
+  SA: ['السعودية', 'Saudi Arabia', 'Саудовская Аравия', 'Arabie saoudite', 'Suudi Arabistan'],
+  AE: ['الإمارات', 'United Arab Emirates', 'ОАЭ', 'Émirats arabes unis', 'Birleşik Arap Emirlikleri'],
+  QA: ['قطر', 'Qatar', 'Катар', 'Qatar', 'Katar'],
+  KW: ['الكويت', 'Kuwait', 'Кувейт', 'Koweït', 'Kuveyt'],
+  EG: ['مصر', 'Egypt', 'Египет', 'Égypte', 'Mısır'],
+  MA: ['المغرب', 'Morocco', 'Марокко', 'Maroc', 'Fas'],
+  PS: ['فلسطين', 'Palestine', 'Палестина', 'Palestine', 'Filistin'],
+  BH: ['البحرين', 'Bahrain', 'Бахрейн', 'Bahreïn', 'Bahreyn'],
+  OM: ['عُمان', 'Oman', 'Оман', 'Oman', 'Umman'],
+  YE: ['اليمن', 'Yemen', 'Йемен', 'Yémen', 'Yemen'],
+  SD: ['السودان', 'Sudan', 'Судан', 'Soudan', 'Sudan'],
+  LY: ['ليبيا', 'Libya', 'Ливия', 'Libye', 'Libya'],
+  TN: ['تونس', 'Tunisia', 'Тунис', 'Tunisie', 'Tunus'],
+  DZ: ['الجزائر', 'Algeria', 'Алжир', 'Algérie', 'Cezayir'],
+  GB: ['بريطانيا', 'United Kingdom', 'Великобритания', 'Royaume-Uni', 'Birleşik Krallık'],
+  US: ['أمريكا', 'United States', 'США', 'États-Unis', 'Amerika Birleşik Devletleri'],
+  FR: ['فرنسا', 'France', 'Франция', 'France', 'Fransa'],
+  RU: ['روسيا', 'Russia', 'Россия', 'Russie', 'Rusya'],
+  quran: ['القرآن الكريم', 'Holy Quran', 'Священный Коран', 'Saint Coran', 'Kur\'an-ı Kerim'],
 };
 const flagOf = (code: string) =>
   String.fromCodePoint(...Array.from(code).map((ch) => 127397 + ch.charCodeAt(0)));
@@ -81,8 +81,8 @@ const FlagIcon = ({ k, size }: { k: string; size: 'lg' | 'sm' }) => {
 export default function RadioPage() {
   const language = useAppStore((s) => s.language);
   const isRTL = language === 'ar';
-  const tr = (ar: string, en: string, ru: string, fr: string) =>
-    language === 'ar' ? ar : language === 'ru' ? ru : language === 'fr' ? fr : en;
+  const tr = (ar: string, en: string, ru: string, fr: string, tk?: string) =>
+    language === 'ar' ? ar : language === 'ru' ? ru : language === 'fr' ? fr : language === 'tr' ? (tk || en) : en;
   const nameOf = (st: any) =>
     (language === 'ar' ? st.titleAr : language === 'ru' ? st.titleRu : language === 'fr' ? st.titleFr : '') || st.title;
   const [loaded, setLoaded] = useState<Record<string, RadioStation[]>>({});
@@ -125,7 +125,7 @@ export default function RadioPage() {
     }).catch(() => {
       if (cancelled) return;
       setCounts({});
-      setError(tr('تعذّر تحميل المحطات', 'Could not load stations', 'Не удалось загрузить станции', 'Impossible de charger les stations'));
+      setError(tr('تعذّر تحميل المحطات', 'Could not load stations', 'Не удалось загрузить станции', 'Impossible de charger les stations', 'İstasyonlar yüklenemedi'));
       setLoading(false);
     });
     return () => { cancelled = true; };
@@ -141,7 +141,7 @@ export default function RadioPage() {
       setLoaded((p) => ({ ...p, [folder]: data }));
     }).catch(() => {
       if (cancelled) return;
-      setError(tr('تعذّر تحميل المحطات', 'Could not load stations', 'Не удалось загрузить станции', 'Impossible de charger les stations'));
+      setError(tr('تعذّر تحميل المحطات', 'Could not load stations', 'Не удалось загрузить станции', 'Impossible de charger les stations', 'İstasyonlar yüklenemedi'));
       setLoaded((p) => ({ ...p, [folder]: [] }));
     });
     return () => { cancelled = true; };
@@ -183,13 +183,13 @@ export default function RadioPage() {
     if (!wantPlayRef.current || !audioRef.current || !activeUrlRef.current) return;
     if (retryTimerRef.current) return; // محاولة مجدولة بالفعل: تجاهل الاستدعاء المكرر
     if (retryRef.current >= 5) {
-      setError(tr('انقطع البث. اضغط تشغيل للمحاولة من جديد', 'Stream lost. Press play to retry', 'Поток прерван. Нажмите, чтобы повторить', 'Flux interrompu. Appuyez pour réessayer'));
+      setError(tr('انقطع البث. اضغط تشغيل للمحاولة من جديد', 'Stream lost. Press play to retry', 'Поток прерван. Нажмите, чтобы повторить', 'Flux interrompu. Appuyez pour réessayer', 'Yayın kesildi. Yeniden denemek için oynata basın'));
       setPlaying(false);
       wantPlayRef.current = false;
       return;
     }
     retryRef.current += 1;
-    setError(tr('جارٍ إعادة الاتصال...', 'Reconnecting...', 'Повторное подключение...', 'Reconnexion...'));
+    setError(tr('جارٍ إعادة الاتصال...', 'Reconnecting...', 'Повторное подключение...', 'Reconnexion...', 'Yeniden bağlanılıyor...'));
     retryTimerRef.current = window.setTimeout(() => {
       retryTimerRef.current = null;
       const a = audioRef.current;
@@ -200,7 +200,7 @@ export default function RadioPage() {
   }
 
   function playStation(station: RadioStation, list?: RadioStation[]) {
-    if (!station.url) { setError(tr('المحطة غير متاحة', 'Station not available', 'Станция недоступна', 'Station indisponible')); return; }
+    if (!station.url) { setError(tr('المحطة غير متاحة', 'Station not available', 'Станция недоступна', 'Station indisponible', 'İstasyon kullanılamıyor')); return; }
     setError(null);
     clearTimers();
     activeUrlRef.current = station.url;
@@ -330,28 +330,28 @@ export default function RadioPage() {
   const folderKeys = [...COUNTRY_ORDER, 'other', 'quran'].filter((k) => counts[k]);
   const folderName = (k: string) => {
     const f = FOLDERS[k];
-    return f ? tr(f[0], f[1], f[2], f[3]) : tr('أخرى', 'Other', 'Другие', 'Autres');
+    return f ? tr(f[0], f[1], f[2], f[3], f[4]) : tr('أخرى', 'Other', 'Другие', 'Autres', 'Diğer');
   };
-  const stationsLabel = tr('محطة', 'stations', 'станций', 'stations');
+  const stationsLabel = tr('محطة', 'stations', 'станций', 'stations', 'istasyon');
   const genreName = (g?: string) =>
-    g === 'quran' ? tr('قرآن', 'Quran', 'Коран', 'Coran')
-    : g === 'news' ? tr('أخبار', 'News', 'Новости', 'Actualités')
-    : g === 'sports' ? tr('رياضة', 'Sports', 'Спорт', 'Sport')
-    : tr('موسيقى', 'Music', 'Музыка', 'Musique');
+    g === 'quran' ? tr('قرآن', 'Quran', 'Коран', 'Coran', 'Kur\'an')
+    : g === 'news' ? tr('أخبار', 'News', 'Новости', 'Actualités', 'Haberler')
+    : g === 'sports' ? tr('رياضة', 'Sports', 'Спорт', 'Sport', 'Spor')
+    : tr('موسيقى', 'Music', 'Музыка', 'Musique', 'Müzik');
 
   const PrevIcon = isRTL ? SkipForward : SkipBack;
   const NextIcon = isRTL ? SkipBack : SkipForward;
 
   return (
-    <FeatureGate feature="radio" fallback={<FeatureComingSoon label={tr('الراديو', 'Radio', 'Радио', 'Radio')} />}>
+    <FeatureGate feature="radio" fallback={<FeatureComingSoon label={tr('الراديو', 'Radio', 'Радио', 'Radio', 'Radyo')} />}>
       <div className="space-y-6 p-4" dir={isRTL ? 'rtl' : 'ltr'}>
         <div className="flex justify-end"><LangSwitch /></div>
         <div className="flex items-center gap-3">
           <Radio size={24} className="text-shams-400" />
-          <h1 className="text-2xl font-bold text-white">{tr('الراديو المباشر', 'Live Radio', 'Прямой эфир', 'Radio en direct')}</h1>
+          <h1 className="text-2xl font-bold text-white">{tr('الراديو المباشر', 'Live Radio', 'Прямой эфир', 'Radio en direct', 'Canlı Radyo')}</h1>
           <span className="flex items-center gap-1 text-xs text-green-400 bg-green-400/10 px-2 py-1 rounded-full">
             <Signal size={10} className="animate-pulse" />
-            {tr('مباشر', 'LIVE', 'В ЭФИРЕ', 'EN DIRECT')}
+            {tr('مباشر', 'LIVE', 'В ЭФИРЕ', 'EN DIRECT', 'CANLI')}
           </span>
         </div>
 
@@ -362,7 +362,7 @@ export default function RadioPage() {
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-white font-bold truncate">{activeTitle}</p>
-              <p className="text-xs text-shams-400">{tr('يُبث الآن', 'Now Playing', 'Сейчас в эфире', 'En cours de lecture')}</p>
+              <p className="text-xs text-shams-400">{tr('يُبث الآن', 'Now Playing', 'Сейчас в эфире', 'En cours de lecture', 'Şimdi Çalıyor')}</p>
             </div>
             <div className="flex w-full items-center justify-center gap-6">
               <button onClick={toggleMute} className="text-gray-400 hover:text-white transition" aria-label="mute">
@@ -371,7 +371,7 @@ export default function RadioPage() {
               <button
                 onClick={() => step(-1)}
                 disabled={!canStep}
-                aria-label={tr('المحطة السابقة', 'Previous station', 'Предыдущая станция', 'Station précédente')}
+                aria-label={tr('المحطة السابقة', 'Previous station', 'Предыдущая станция', 'Station précédente', 'Önceki istasyon')}
                 className="text-gray-400 hover:text-white transition disabled:opacity-30"
               >
                 <PrevIcon size={30} />
@@ -382,7 +382,7 @@ export default function RadioPage() {
               <button
                 onClick={() => step(1)}
                 disabled={!canStep}
-                aria-label={tr('المحطة التالية', 'Next station', 'Следующая станция', 'Station suivante')}
+                aria-label={tr('المحطة التالية', 'Next station', 'Следующая станция', 'Station suivante', 'Sonraki istasyon')}
                 className="text-gray-400 hover:text-white transition disabled:opacity-30"
               >
                 <NextIcon size={30} />
@@ -423,7 +423,7 @@ export default function RadioPage() {
                 className="flex items-center gap-1 text-sm text-gray-400 hover:text-white transition"
               >
                 {isRTL ? <ArrowRight size={16} /> : <ArrowLeft size={16} />}
-                {tr('رجوع', 'Back', 'Назад', 'Retour')}
+                {tr('رجوع', 'Back', 'Назад', 'Retour', 'Geri')}
               </button>
               <FlagIcon k={folder} size="sm" />
               <h2 className="text-xl font-bold text-white">{folderName(folder)}</h2>

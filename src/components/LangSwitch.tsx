@@ -7,6 +7,7 @@ const LANGS = [
   { code: 'en', label: 'English' },
   { code: 'ru', label: 'Русский' },
   { code: 'fr', label: 'Français' },
+  { code: 'tr', label: 'Türkçe' },
 ] as const;
 
 export default function LangSwitch() {

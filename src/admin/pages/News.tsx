@@ -19,8 +19,8 @@ interface NewsItem {
 export default function News() {
   const language = useAppStore((s) => s.language);
   const t = translations[language];
-  const tr = (ar: string, en: string, ru: string, fr: string) =>
-    language === 'ar' ? ar : language === 'ru' ? ru : language === 'fr' ? fr : en;
+  const tr = (ar: string, en: string, ru: string, fr: string, tk?: string) =>
+    language === 'ar' ? ar : language === 'ru' ? ru : language === 'fr' ? fr : language === 'tr' ? (tk || en) : en;
 
   const [items, setItems] = useState<NewsItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -73,22 +73,22 @@ export default function News() {
             className="text-sm px-3 py-1.5 rounded-xl bg-gray-800 border border-gray-700 text-gray-300 hover:text-white transition"
           >
             {allLangs
-              ? tr('لغتي فقط', 'My language only', 'Только мой язык', 'Ma langue seulement')
-              : tr('كل اللغات', 'All languages', 'Все языки', 'Toutes les langues')}
+              ? tr('لغتي فقط', 'My language only', 'Только мой язык', 'Ma langue seulement', 'Yalnızca dilim')
+              : tr('كل اللغات', 'All languages', 'Все языки', 'Toutes les langues', 'Tüm diller')}
           </button>
         </div>
 
         {loading && (
-          <p className="text-gray-400 text-center py-10">{tr('جارٍ التحميل...', 'Loading...', 'Загрузка...', 'Chargement...')}</p>
+          <p className="text-gray-400 text-center py-10">{tr('جارٍ التحميل...', 'Loading...', 'Загрузка...', 'Chargement...', 'Yükleniyor...')}</p>
         )}
         {error && (
           <p className="text-red-400 text-center py-10">
-            {tr('تعذر تحميل الأخبار الآن', 'Could not load news right now', 'Не удалось загрузить новости', 'Impossible de charger les actualités')}
+            {tr('تعذر تحميل الأخبار الآن', 'Could not load news right now', 'Не удалось загрузить новости', 'Impossible de charger les actualités', 'Haberler şu anda yüklenemedi')}
           </p>
         )}
         {!loading && !error && shown.length === 0 && (
           <p className="text-gray-400 text-center py-10">
-            {tr('لا توجد أخبار بهذه اللغة الآن', 'No news in this language yet', 'Пока нет новостей на этом языке', "Pas encore d'actualités dans cette langue")}
+            {tr('لا توجد أخبار بهذه اللغة الآن', 'No news in this language yet', 'Пока нет новостей на этом языке', "Pas encore d'actualités dans cette langue", 'Bu dilde henüz haber yok')}
           </p>
         )}
 

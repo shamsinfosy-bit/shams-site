@@ -83,13 +83,15 @@ export default function Dashboard() {
       ar: 'شامس - لوحة التحكم الذكية',
       en: 'SHAMS - Intelligent Media Dashboard',
       fr: 'SHAMS - Tableau de bord intelligent',
-      ru: 'SHAMS - Интеллектуальная панель управления'
+      ru: 'SHAMS - Интеллектуальная панель управления',
+      tr: 'SHAMS - Akıllı Medya Kontrol Paneli'
     },
     description: {
       ar: 'لوحة تحليلات وإدارة المحتوى لمنصة شامس الإعلامية الذكية.',
       en: 'SHAMS intelligent media platform analytics and content management dashboard.',
       fr: 'Tableau de bord d\'analyse et de gestion de contenu de la plateforme médiatique intelligente SHAMS.',
-      ru: 'Панель аналитики и управления контентом интеллектуальной медиа-платформы SHAMS.'
+      ru: 'Панель аналитики и управления контентом интеллектуальной медиа-платформы SHAMS.',
+      tr: 'SHAMS akıllı medya platformu için analiz ve içerik yönetimi paneli.'
     }
   }
 
@@ -112,7 +114,7 @@ export default function Dashboard() {
         <meta property="og:title" content={seoData.title[currentLang]} />
         <meta property="og:description" content={seoData.description[currentLang]} />
         <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://shamsinfosy-bit.github.io/shams-site" />
+        <meta property="og:url" content="https://shams-1db5a.web.app" />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="keywords" content="شامس, SHAMS, منصة إعلامية, ذكاء اصطناعي, لوحة تحكم, media platform, AI, dashboard" />
       </Helmet>

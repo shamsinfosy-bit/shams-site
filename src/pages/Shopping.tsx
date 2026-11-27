@@ -26,8 +26,8 @@ const PAGE_SIZE = 24;
 
 export default function Shopping() {
   const language = useAppStore((s: any) => s.language);
-  const tr = (ar: string, en: string, ru: string, fr: string) =>
-    language === 'ar' ? ar : language === 'ru' ? ru : language === 'fr' ? fr : en;
+  const tr = (ar: string, en: string, ru: string, fr: string, tk?: string) =>
+    language === 'ar' ? ar : language === 'ru' ? ru : language === 'fr' ? fr : language === 'tr' ? (tk || en) : en;
 
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -74,7 +74,7 @@ export default function Shopping() {
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-gray-800 pb-4">
           <div>
             <h1 className="text-2xl font-bold text-white flex items-center gap-2">
-              🛍️ {tr('تسوق مع شمس', 'Shop with Shams', 'Покупки с Шамс', 'Boutique Shams')}
+              🛍️ {tr('تسوق مع شمس', 'Shop with Shams', 'Покупки с Шамс', 'Boutique Shams', 'Shams ile Alışveriş')}
             </h1>
             <p className="text-gray-400 text-sm mt-1">
               {tr(
@@ -93,22 +93,22 @@ export default function Shopping() {
                 setSearch(e.target.value);
                 setVisible(PAGE_SIZE);
               }}
-              placeholder={tr('ابحث عن منتج (بالإنجليزية)', 'Search products', 'Поиск товаров', 'Rechercher')}
+              placeholder={tr('ابحث عن منتج (بالإنجليزية)', 'Search products', 'Поиск товаров', 'Rechercher', 'Ürün ara')}
               className="w-full bg-gray-800 border border-gray-700 rounded-xl ps-9 pe-3 py-2 text-sm text-white placeholder-gray-500 outline-none focus:border-amber-500"
             />
           </div>
         </div>
 
         {loading && (
-          <p className="text-gray-400 text-center py-10">{tr('جارٍ التحميل...', 'Loading...', 'Загрузка...', 'Chargement...')}</p>
+          <p className="text-gray-400 text-center py-10">{tr('جارٍ التحميل...', 'Loading...', 'Загрузка...', 'Chargement...', 'Yükleniyor...')}</p>
         )}
         {error && (
           <p className="text-red-400 text-center py-10">
-            {tr('تعذر تحميل المنتجات الآن', 'Could not load products right now', 'Не удалось загрузить товары', 'Impossible de charger les produits')}
+            {tr('تعذر تحميل المنتجات الآن', 'Could not load products right now', 'Не удалось загрузить товары', 'Impossible de charger les produits', 'Ürünler şu anda yüklenemedi')}
           </p>
         )}
         {!loading && !error && filtered.length === 0 && (
-          <p className="text-gray-400 text-center py-10">{tr('لا توجد منتجات', 'No products found', 'Товары не найдены', 'Aucun produit')}</p>
+          <p className="text-gray-400 text-center py-10">{tr('لا توجد منتجات', 'No products found', 'Товары не найдены', 'Aucun produit', 'Ürün bulunamadı')}</p>
         )}
 
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -132,12 +132,12 @@ export default function Shopping() {
                     )}
                     {p.sales180Day > 0 && (
                       <p className="text-xs text-gray-500">
-                        {tr('تم بيع', 'Sold', 'Продано', 'Vendus')} {p.sales180Day.toLocaleString()}+
+                        {tr('تم بيع', 'Sold', 'Продано', 'Vendus', 'Satıldı')} {p.sales180Day.toLocaleString()}+
                       </p>
                     )}
                     {p.couponCode && (
                       <p className="text-xs text-green-400">
-                        {tr('كوبون', 'Coupon', 'Купон', 'Coupon')}: {p.couponCode}
+                        {tr('كوبون', 'Coupon', 'Купон', 'Coupon', 'Kupon')}: {p.couponCode}
                       </p>
                     )}
                   </div>
@@ -149,8 +149,8 @@ export default function Shopping() {
                     </span>
                     {p.originalPrice && p.originalPrice > p.price && (
                       <p className="text-xs text-green-400 mt-1">
-                        {tr('عروض قد تخفض السعر حتى', 'Deals may lower this to', 'Скидки могут снизить цену до', 'Des offres peuvent baisser le prix jusqu’à')} {money(p.price, p.currency)}
-                        <span className="text-gray-500"> {tr('(تختلف حسب الحساب والبلد)', '(varies by account and country)', '(зависит от аккаунта и страны)', '(selon le compte et le pays)')}</span>
+                        {tr('عروض قد تخفض السعر حتى', 'Deals may lower this to', 'Скидки могут снизить цену до', 'Des offres peuvent baisser le prix jusqu’à', 'İndirimlerle fiyat şuna kadar düşebilir')} {money(p.price, p.currency)}
+                        <span className="text-gray-500"> {tr('(تختلف حسب الحساب والبلد)', '(varies by account and country)', '(зависит от аккаунта и страны)', '(selon le compte et le pays)', '(hesaba ve ülkeye göre değişir)')}</span>
                       </p>
                     )}
                   </div>
@@ -161,7 +161,7 @@ export default function Shopping() {
                     className="flex items-center justify-center gap-2 w-full px-3 py-2 rounded-xl font-medium bg-amber-500 hover:bg-amber-400 text-gray-950 transition-all"
                   >
                     <ShoppingBag className="w-4 h-4" />
-                    {tr('اشترِ الآن', 'Buy now', 'Купить', 'Acheter')}
+                    {tr('اشترِ الآن', 'Buy now', 'Купить', 'Acheter', 'Şimdi satın al')}
                     <ExternalLink className="w-3.5 h-3.5" />
                   </a>
                 </div>
@@ -176,7 +176,7 @@ export default function Shopping() {
               onClick={() => setVisible((v) => v + PAGE_SIZE)}
               className="px-6 py-2 rounded-xl bg-gray-800 border border-gray-700 text-white hover:bg-gray-700"
             >
-              {tr('عرض المزيد', 'Show more', 'Показать ещё', 'Voir plus')}
+              {tr('عرض المزيد', 'Show more', 'Показать ещё', 'Voir plus', 'Daha fazla göster')}
             </button>
           </div>
         )}
