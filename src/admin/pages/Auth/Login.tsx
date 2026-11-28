@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useAppStore } from '../../../store';
+import { useAppStore, useUserStore } from '../../../store';
 import { Language } from '../../../i18n/translations';
 import { auth } from '../../../services/firebase';
 import {
@@ -128,6 +128,13 @@ const UI: Record<string, Record<Language, string>> = {
     ru: 'Минимум 6 символов.',
     tr: 'En az 6 karakter.',
   },
+  googleHint: {
+    en: 'If you signed up with Google, use the "Continue with Google" button.',
+    ar: 'إن كان حسابك مسجّلاً عبر جوجل فاستخدم زر "المتابعة مع جوجل".',
+    fr: 'Si vous vous êtes inscrit avec Google, utilisez le bouton Google.',
+    ru: 'Если вы регистрировались через Google, используйте кнопку Google.',
+    tr: 'Google ile kaydolduysanız "Google ile devam et" düğmesini kullanın.',
+  },
   googleOnly: {
     en: 'This email is linked to Google Sign-In. Please use the "Continue with Google" button below.',
     ar: 'هذا البريد مرتبط بجوجل. الرجاء استخدام زر "المتابعة مع جوجل" أدناه.',
@@ -168,14 +175,26 @@ export default function Login() {
     { code: 'ar', label: 'AR' },
     { code: 'fr', label: 'FR' },
     { code: 'ru', label: 'RU' },
+    { code: 'tr', label: 'TR' },
   ];
+
+  const goAfterLogin = async () => {
+    const t0 = Date.now();
+    while (!useUserStore.getState().user && Date.now() - t0 < 8000) {
+      await new Promise((r) => setTimeout(r, 100));
+    }
+    navigate(redirectAfterLogin, { replace: true });
+  };
 
   const getError = (code: string) =>
     (ERRORS[code] || ERRORS.default)[lang] || ERRORS.default.en;
 
   const checkGoogleOnly = async (emailVal: string): Promise<boolean> => {
     try {
-      const methods = await fetchSignInMethodsForEmail(auth, emailVal);
+      const methods = await Promise.race([
+          fetchSignInMethodsForEmail(auth, emailVal),
+          new Promise<string[]>((_, rej) => setTimeout(() => rej(new Error('timeout')), 4000)),
+        ]);
 
       if (methods.includes('google.com') && !methods.includes('password')) {
         setIsGoogleOnly(true);
@@ -220,7 +239,7 @@ export default function Login() {
         await signInWithEmailAndPassword(auth, email, password);
       }
 
-      navigate(redirectAfterLogin, { replace: true });
+      await goAfterLogin();
     } catch (e: any) {
       if (
         e.code === 'auth/invalid-credential' ||
@@ -232,7 +251,7 @@ export default function Login() {
         }
       }
 
-      setError(getError(e.code));
+      setError(getError(e.code) + (e.code === 'auth/invalid-credential' || e.code === 'auth/wrong-password' ? ' ' + UI.googleHint[lang] : ''));
     }
 
     setLoading(false);
@@ -245,7 +264,7 @@ export default function Login() {
 
     try {
       await signInWithPopup(auth, new GoogleAuthProvider());
-      navigate(redirectAfterLogin, { replace: true });
+      await goAfterLogin();
     } catch (e: any) {
       setError(getError(e.code));
     }

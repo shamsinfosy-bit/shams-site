@@ -73,8 +73,8 @@ export default function PublicHome() {
     { to: '/movies',   icon: Film,      label: t.movies  || 'Movies'    },
     { to: '/series',   icon: Tv,        label: t.series  || 'Series'    },
     { to: '/music',    icon: Music,     label: t.music   || 'Music'     },
-    { to: '/news',     icon: Newspaper, label: t.news    || 'News'      },
-    { to: '/games',    icon: Gamepad2,  label: t.games   || 'Games'     },
+    { to: '/news',     icon: Newspaper, label: lbl('الأخبار', 'News', 'Новости', 'Actualités', 'Haberler')      },
+    { to: '/games',    icon: Gamepad2,  label: lbl('الألعاب', 'Games', 'Игры', 'Jeux', 'Oyunlar')     },
     { to: '/radio',    icon: Radio,     label: t.radio   || 'Radio'     },
     { to: '/podcasts', icon: Mic,       label: lbl('بودكاست', 'Podcasts', 'Подкасты', 'Podcasts', 'Podcast')   },
     { to: '/articles', icon: FileText,  label: lbl('مقالات', 'Articles', 'Статьи', 'Articles', 'Makaleler')   },
@@ -88,18 +88,19 @@ export default function PublicHome() {
     { id: 'radio', name: lbl('راديو شمس', 'SHAMS Radio', 'Радио SHAMS', 'Radio SHAMS', 'SHAMS Radyo'), desc: lbl('أكثر من ٥٠٠ محطة مباشرة', '500+ live stations', 'Более 500 радиостанций в прямом эфире', 'Plus de 500 stations en direct', '500\'den fazla canlı radyo'), icon: '/icon-192.png', to: '/app' },
   ];
   const deferredRef = useRef<any>(null);
-  const [installHelp, setInstallHelp] = useState(false);
+  const [installHelp, setInstallHelp] = useState(() => /iphone|ipad|ipod/i.test(navigator.userAgent));
   useEffect(() => {
-    const onPrompt = (e: any) => { e.preventDefault(); deferredRef.current = e; };
+    const onPrompt = (e: any) => { e.preventDefault(); deferredRef.current = e; (window as any).__installEvt = e; };
     window.addEventListener('beforeinstallprompt', onPrompt);
     return () => window.removeEventListener('beforeinstallprompt', onPrompt);
   }, []);
   const installApp = async () => {
-    const d = deferredRef.current;
+    const d = deferredRef.current || (window as any).__installEvt;
     if (!d) { setInstallHelp(true); return; }
     d.prompt();
     try { await d.userChoice; } catch { /* ignore */ }
     deferredRef.current = null;
+    (window as any).__installEvt = null;
   };
 
   const handleLogout = async () => {
@@ -285,7 +286,7 @@ export default function PublicHome() {
         <div className="flex flex-wrap items-center justify-center gap-3">
           {[
             { to: '/about',   icon: BookOpen,  label: t.about   || 'About'   },
-            { to: '/news',    icon: Newspaper, label: t.news    || 'News'    },
+            { to: '/news',    icon: Newspaper, label: lbl('الأخبار', 'News', 'Новости', 'Actualités', 'Haberler')    },
             { to: '/contact', icon: Mail,      label: t.contact || 'Contact' },
           ].map((link, i) => (
             <Link key={i} to={link.to} className="flex items-center gap-2 px-5 py-3 bg-gray-900 border border-gray-800 rounded-xl text-gray-300 hover:border-shams-500/30 hover:text-shams-400 transition text-sm font-medium">
